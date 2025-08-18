@@ -1,0 +1,158 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+*.pdb
+*.egg-info/
+*.egg
+*.log
+
+# VSCode
+.vscode/
+.code-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environments
+.env
+.venv/
+venv/
+ENV/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Others
+*.sqlite3
+*.db
+*.bak
+*.swp
+*~
+
+# Pip
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Test
+htmlcov/
+.coverage
+.tox/
+.nox/
+
+# Mac
+*.DS_Store
+
+# Windows
+*.exe
+*.dll
+*.obj
+*.o
+*.a
+*.lib
+*.so
+*.pyproj
+*.sln
+*.user
+*.suo
+*.pdb
+*.idb
+*.class
+
+# PyCharm
+.idea/
+*.iml
+
+# JetBrains
+*.ipr
+*.iws
+
+# Backup
+*.bak
+*.tmp
+
+# Misc
+*.orig
+*.rej
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+*.pdb
+*.egg-info/
+*.egg
+*.log
+
+# VSCode
+.vscode/
+.code-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environments
+.env
+.venv/
+venv/
+ENV/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Others
+*.sqlite3
+*.db
+*.bak
+*.swp
+*~
+
+# Pip
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Test
+htmlcov/
+.coverage
+.tox/
+.nox/
+
+# Mac
+*.DS_Store
+
+# Windows
+*.exe
+*.dll
+*.obj
+*.o
+*.a
+*.lib
+*.so
+*.pyproj
+*.sln
+*.user
+*.suo
+*.pdb
+*.idb
+*.class
+
+# PyCharm
+.idea/
+*.iml
+
+# JetBrains
+*.ipr
+*.iws
+
+# Backup
+*.bak
+*.tmp
+
+# Misc
+*.orig
+*.rej

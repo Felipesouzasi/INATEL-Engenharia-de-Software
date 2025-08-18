@@ -1,0 +1,129 @@
+
+body {
+    background: linear-gradient(120deg, #232526 0%, #414345 100%);
+    font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+    color: #fff;
+    min-height: 100vh;
+    margin: 0;
+}
+/* Container principal */
+.container {
+    max-width: 440px;
+    margin: 60px auto;
+    background: rgba(34, 40, 49, 0.97);
+    padding: 44px 32px 32px 32px;
+    border-radius: 20px;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    text-align: center;
+    border: 1px solid rgba(255,255,255,0.10);
+    backdrop-filter: blur(2px);
+}
+
+.container h1 {
+    font-size: 2.3rem;
+    font-weight: 800;
+    margin-bottom: 22px;
+    letter-spacing: 1.5px;
+    color: #00ffe7;
+    text-shadow: 0 2px 12px #00ffe7a0, 0 0px 2px #0072ff;
+}
+
+.container input[type="text"] {
+    width: 85%;
+    padding: 13px;
+    margin-bottom: 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.05rem;
+    background: #232526;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+    outline: none;
+}
+    input[type="text"]::placeholder {
+        color: #b2bec3;
+        opacity: 0.8;
+    }
+    button {
+        padding: 13px 32px;
+        background: linear-gradient(90deg, #00ffe7 0%, #0072ff 100%);
+        color: #232526;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1.15rem;
+        font-weight: 700;
+        box-shadow: 0 2px 12px #00ffe7a0;
+        transition: background 0.3s, color 0.3s, transform 0.2s;
+        letter-spacing: 0.5px;
+    }
+    button:hover {
+        background: linear-gradient(90deg, #0072ff 0%, #00ffe7 100%);
+        color: #fff;
+        transform: scale(1.05);
+    }
+    .resultado {
+        margin-top: 32px;
+        background: rgba(0,255,231,0.10);
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px #00ffe7a0;
+        animation: fadeIn 0.7s;
+    }
+    .resultado h2 {
+        color: #00ffe7;
+        margin-bottom: 12px;
+        font-size: 1.5rem;
+        font-weight: 700;
+        letter-spacing: 1px;
+    }
+    .resultado p {
+        font-size: 1.13rem;
+        margin: 10px 0;
+    }
+    .erro {
+        color: #ff4f4f;
+        margin-top: 20px;
+        font-weight: 700;
+        background: rgba(255,79,79,0.10);
+        padding: 12px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px #ff4f4fa0;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+/* Removido bloco inválido: color e transform estavam fora de seletor */
+.resultado {
+    margin-top: 32px;
+    background: rgba(0,255,231,0.10);
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px #00ffe7a0;
+    animation: fadeIn 0.7s;
+}
+.resultado h2 {
+    color: #00ffe7;
+    margin-bottom: 12px;
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+.resultado p {
+    font-size: 1.13rem;
+    margin: 10px 0;
+}
+.erro {
+    color: #ff4f4f;
+    margin-top: 20px;
+    font-weight: 700;
+    background: rgba(255,79,79,0.10);
+    padding: 12px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px #ff4f4fa0;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
