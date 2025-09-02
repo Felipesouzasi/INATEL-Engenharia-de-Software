@@ -6,7 +6,7 @@ O CriptoCoin é uma aplicação web desenvolvida em Flask que permite ao usuári
 ## Configuração do Ambiente
 1. **Clone o repositório:**
 	```bash
-	git clone <url-do-repositorio>
+	git clone https://github.com/Felipesouzasi/INATEL-Engenharia-de-Software
 	cd criptoCoin
 	```
 2. **(Opcional) Crie um ambiente virtual:**
