@@ -1,0 +1,265 @@
+name: Python CI/CD - CriptoCoin
+
+on:
+  push:
+    branches: ["main", "develop"]
+  pull_request:
+    branches: ["main", "develop"]
+
+env:
+  PYTHON_VERSION: "3.12"
+  ARTIFACT_RETENTION_DAYS: 7
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    name: Build Package
+    runs-on: ubuntu-latest
+    outputs:
+      package_version: ${{ steps.version.outputs.value }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: "pip"
+
+      - name: Install build tooling
+        run: |
+          python -m pip install --upgrade pip
+          pip install build setuptools wheel
+
+      - name: Read project version
+        id: version
+        shell: bash
+        run: |
+          VERSION=$(python -c "import tomllib;print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])")
+          echo "value=${VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Build distribution
+        run: python -m build
+
+      - name: Upload package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-dist
+          path: dist/
+          retention-days: ${{ env.ARTIFACT_RETENTION_DAYS }}
+
+  test:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run unit tests
+        run: |
+          mkdir -p test-results
+          pytest tests/test_app.py -v --tb=short --junitxml=test-results/junit.xml
+
+      - name: Upload junit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-report
+          path: test-results/
+          retention-days: ${{ env.ARTIFACT_RETENTION_DAYS }}
+
+  coverage:
+    name: Code Coverage
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run coverage
+        run: |
+          pytest tests/test_app.py --cov=crypto_coin --cov-report=xml --cov-report=html
+
+      - name: Upload coverage xml
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-xml
+          path: coverage.xml
+          retention-days: ${{ env.ARTIFACT_RETENTION_DAYS }}
+
+      - name: Upload coverage html
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-html
+          path: htmlcov/
+          retention-days: ${{ env.ARTIFACT_RETENTION_DAYS }}
+
+  notification:
+    name: Notification
+    runs-on: ubuntu-latest
+    needs: [build, test, coverage]
+    if: always()
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies for notification script
+        run: |
+          python -m pip install --upgrade pip
+          pip install email-validator
+
+      - name: Send success notification (external script)
+        if: needs.build.result == 'success' && needs.test.result == 'success' && needs.coverage.result == 'success'
+        env:
+          EMAIL_RECIPIENT: ${{ secrets.EMAIL_RECIPIENT }}
+          SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
+          SENDER_PASSWORD: ${{ secrets.SENDER_PASSWORD }}
+          SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_ACTOR: ${{ github.actor }}
+          TESTS_STATUS: ${{ needs.test.result }}
+          BUILD_STATUS: ${{ needs.build.result }}
+          NOTIFY_STATUS: success
+          DEPLOY_STATUS: pending
+        run: python scripts/notify.py success
+
+      - name: Send failure notification (external script)
+        if: needs.build.result != 'success' || needs.test.result != 'success' || needs.coverage.result != 'success'
+        env:
+          EMAIL_RECIPIENT: ${{ secrets.EMAIL_RECIPIENT }}
+          SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
+          SENDER_PASSWORD: ${{ secrets.SENDER_PASSWORD }}
+          SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_ACTOR: ${{ github.actor }}
+          TESTS_STATUS: ${{ needs.test.result }}
+          BUILD_STATUS: ${{ needs.build.result }}
+          NOTIFY_STATUS: failure
+          DEPLOY_STATUS: skipped
+        run: python scripts/notify.py failure
+
+  deploy-site:
+    name: Deploy Reports to GitHub Pages
+    runs-on: ubuntu-latest
+    needs: [test, coverage]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && needs.test.result == 'success' && needs.coverage.result == 'success'
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Download coverage html artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-html
+          path: site/coverage
+
+      - name: Download junit artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: junit-report
+          path: site/tests
+
+      - name: Create simple index page
+        shell: bash
+        run: |
+          cat > site/index.html << 'EOF'
+          <!doctype html>
+          <html lang="pt-BR">
+          <head>
+            <meta charset="utf-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1" />
+            <title>CriptoCoin Reports</title>
+          </head>
+          <body>
+            <h1>CriptoCoin - Relatorios CI/CD</h1>
+            <p>Build gerado automaticamente pelo GitHub Actions.</p>
+            <ul>
+              <li><a href="./coverage/index.html">Relatorio de Cobertura (HTML)</a></li>
+              <li><a href="./tests/junit.xml">Resultado de Testes (JUnit XML)</a></li>
+            </ul>
+          </body>
+          </html>
+          EOF
+
+      - name: Upload pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site/
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  pipeline-summary:
+    name: Pipeline Summary
+    runs-on: ubuntu-latest
+    needs: [build, test, coverage, notification, deploy-site]
+    if: always()
+
+    steps:
+      - name: Build summary file
+        shell: bash
+        run: |
+          {
+            echo "Pipeline: CriptoCoin CI/CD"
+            echo "Build: ${{ needs.build.result }}"
+            echo "Test: ${{ needs.test.result }}"
+            echo "Coverage: ${{ needs.coverage.result }}"
+            echo "Notification: ${{ needs.notification.result }}"
+            echo "Deploy Site: ${{ needs.deploy-site.result }}"
+          } > summary.txt
+          cat summary.txt
+
+      - name: Upload summary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pipeline-summary
+          path: summary.txt
+          retention-days: ${{ env.ARTIFACT_RETENTION_DAYS }}
